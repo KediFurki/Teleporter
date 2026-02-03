@@ -22,7 +22,8 @@
             
             if (dateParam != null && !dateParam.isEmpty()) {
                 LocalDate ld = LocalDate.parse(dateParam);
-                Instant targetDate = ld.atStartOfDay(ZoneId.of("Europe/Rome")).toInstant();
+                
+                Instant targetDate = ld.atStartOfDay(ZoneId.systemDefault()).toInstant();
                 
                 log.info(trackId + " >>> MANUAL TRIGGER STARTED via Dashboard for date: " + targetDate);
                 
@@ -39,7 +40,7 @@
         } catch (Exception e) {
             message = "Error: " + e.getMessage();
             messageType = "error";
-            e.printStackTrace();
+            LogManager.getLogger("comapp.web.ManualExport").error("Manual export failed", e);
         }
     }
 %>
