@@ -1,0 +1,23 @@
+# SVN
+.svn/
+
+# Build output
+build/
+out/
+target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

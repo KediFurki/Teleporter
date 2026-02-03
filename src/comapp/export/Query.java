@@ -41,6 +41,7 @@ public final class Query {
 		ArrayList<String> queueIds =  gp.getQueuesId();
 		String sql = String.format(SQL_CALL_DATA, buildInClause(queueIds.size())) + " LIMIT " + gp.numberExportCall;
 		
+		
 
 		gp.calls =  new ArrayList<>();
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
