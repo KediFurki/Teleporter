@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import comapp.ConfigServlet;
- 
 
 public final class Query {
 	private static final Logger LOG = LogManager.getLogger(Query.class);
@@ -22,17 +21,28 @@ public final class Query {
 	            " SELECT queue_id, queue_name, public.rec_groups.gruppo_code, division,percentuale FROM public.rec_queues  inner join  public.rec_groups on public.rec_queues.gruppo_code =  public.rec_groups.gruppo_code  ORDER BY queue_id";
 
 
-	private static final String SQL_CALL_DATA = "SELECT t.conversationid, t.participantid, t.queueid, t.connectedtime, t.endtime, "
-			+ "q.queue_name as queuename, q.division as divisionname, c.originatingdirection as direction "
-			+ "FROM (SELECT p2.*, ROW_NUMBER() OVER (PARTITION BY p2.conversationid ORDER BY p2.connectedtime ASC) AS rn "
-			+ "FROM (SELECT DISTINCT p.conversationid FROM participants p "
-			+ "INNER JOIN sessions s ON s.participantid = p.participantid "
-			+ "WHERE p.connectedtime >= ? AND p.endtime <= ? AND p.queueid IN %s) conv "
-			+ "INNER JOIN participants p2 ON conv.conversationid = p2.conversationid "
-			+ "WHERE p2.purpose = 'agent' AND p2.connectedtime IS NOT NULL) t "
-			+ "LEFT JOIN conversations c ON t.conversationid = c.conversationid "
-			+ "LEFT JOIN rec_queues q ON t.queueid = q.queue_id " + "WHERE t.rn = 1 ORDER BY RANDOM()";
+	private static final String SQL_CALL_DATA = "SELECT t.conversationid AS callid, d.name AS divisionname, q.name AS queuename, t.* " + 
+	        "FROM ( " +
+	        "SELECT p2.*, " +
+	        "ROW_NUMBER() OVER ( " +
+	        "PARTITION BY p2.conversationid " +
+	        "ORDER BY p2.connectedtime ASC ) AS rn " +
+	        "FROM ( " +
+	        "SELECT DISTINCT p.conversationid " +
+	        "FROM participants p " +
+	        "INNER JOIN sessions s ON s.participantid = p.participantid " +
+	        "WHERE p.connectedtime >= ? AND p.endtime <= ? AND p.queueid IN %s AND s.recording = 'true' ) conv " +
+	        "INNER JOIN participants p2 " +
+	        "ON conv.conversationid = p2.conversationid " +
+	        "WHERE p2.purpose = 'agent' AND p2.connectedtime IS NOT NULL ) t " +
+	        "INNER JOIN conf_user u ON t.userid = u.id " +
+	        "INNER JOIN conf_divisions d ON u.divisionid = d.id " +
+	        "INNER JOIN conf_queue q ON t.queueid = q.id " +
+	        "WHERE t.rn = 1 " +
+	        "ORDER BY RANDOM()";
  
+	
+	
 	public static void getCallData(Connection connection, Instant from, Instant to,Group gp) throws SQLException {
 		if (gp == null ) {
 			LOG.debug("getCallData() called with empty queueIds, returning empty list");
@@ -42,7 +52,6 @@ public final class Query {
 		String sql = String.format(SQL_CALL_DATA, buildInClause(queueIds.size())) + " LIMIT " + gp.numberExportCall;
 		
 		
-
 		gp.calls =  new ArrayList<>();
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 			ps.setString(1, from.toString());
@@ -135,11 +144,6 @@ public final class Query {
 		return ;
 	}
 
-	/**
-	 * @param conversationId The conversation ID to look up
-	 * @return Optional containing CallRow if found, empty otherwise
-	 * @throws SQLException if database query fails
-	 */
 	public static Optional<Call> getCallDataById(Connection connection, String conversationId) throws SQLException {
 		String sql = "SELECT conversationid, queueid, connectedtime FROM participants WHERE conversationid = ? LIMIT 1";
 		LOG.debug("Executing SQL query for getCallDataById(): {} with conversationId={}", sql, conversationId);
@@ -160,14 +164,13 @@ public final class Query {
 		return Optional.empty();
 	}
 
-	/**
-	 * @param conversationId The conversation ID
-	 * @return Map of attribute key-value pairs
-	 * @throws SQLException if database query fails
-	 */
 	public static Map<String, String> getAttributes(Connection connection, String conversationId) throws SQLException {
+		String sql = "SELECT p.conversationid, a.key, a.value " +
+                "FROM public.participants p " +
+                "INNER JOIN public.attributes a ON p.participantid = a.participantid " +
+                "WHERE p.conversationid = ?";
+		
 		Map<String, String> result = new HashMap<>();
-		String sql = "SELECT key, value FROM attributes WHERE participantid IN (SELECT participantid FROM participants WHERE conversationid = ?)";
 		LOG.debug("Executing SQL query for getAttributes(): {} with conversationId={}", sql, conversationId);
 
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {

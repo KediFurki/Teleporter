@@ -115,7 +115,7 @@
 
     <div class="footer">
         Version: <%= ConfigServlet.version %> &bull; System: Online<br>
-        Log directory: C:/SentimentTeleporter/logs
+        Log directory: C:/comapp/Log
     </div>
 </div>
 

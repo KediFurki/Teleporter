@@ -21,11 +21,6 @@ public final class ExportService {
 	private static final Logger LOG = LogManager.getLogger(ExportService.class);
 	private static final DateTimeFormatter FILE_DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(java.time.ZoneId.systemDefault());
 
-	/**
-	 * @param trackId Tracking ID for logging and API calls
-	 * @param date    Target date for export (typically yesterday)
-	 * @throws Exception if export fails
-	 */
 	public void executeExport(TrackId trackId, Instant date) throws Exception {
 		LOG.info("Export session started for date: {}", date);
 		Map<String, Group> groups = new LinkedHashMap<String, Group>();
@@ -65,7 +60,7 @@ public final class ExportService {
 			for (Group gn : groups.values()) {
 				Query.getCallData(conn, from, to, gn);
 
-				Path exportDir = Paths.get("e:/TeleporterExport");
+				Path exportDir = Paths.get("C:/Teleporter/exports");
 				Files.createDirectories(exportDir);
 				LOG.debug("Export directory: {}", exportDir.toAbsolutePath());
 
@@ -110,12 +105,6 @@ public final class ExportService {
 	}
 
 	
-
-	/**
-	 * @param p Application properties
-	 * @return JSON response with status
-	 * @throws Exception if export fails
-	 */
 	public static JSONObject runBatch(Properties p) throws Exception {
 		LOG.info("Batch export triggered");
 		ExportService s = new ExportService();
