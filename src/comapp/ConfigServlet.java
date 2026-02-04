@@ -141,6 +141,9 @@ public class ConfigServlet extends HttpServlet {
                     log.info(">>> AUTOMATIC NIGHTLY EXPORT STARTED <<<");
                     Properties p = getProperties();
                     ExportService.runBatch(p);
+                    
+                    
+                    
                     log.info(">>> AUTOMATIC NIGHTLY EXPORT FINISHED <<<");
                 } catch (Exception e) {
                     log.error("CRITICAL: Nightly export failed", e);

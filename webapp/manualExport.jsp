@@ -18,23 +18,34 @@
             Logger log = LogManager.getLogger("comapp.web.ManualExport");
             TrackId trackId = TrackId.get(session);
             
-            String dateParam = request.getParameter("targetDate");
+            String fromDateParam = request.getParameter("fromDate");
+            String toDateParam = request.getParameter("toDate");
             
-            if (dateParam != null && !dateParam.isEmpty()) {
-                LocalDate ld = LocalDate.parse(dateParam);
+            if (fromDateParam != null && !fromDateParam.isEmpty() && 
+                toDateParam != null && !toDateParam.isEmpty()) {
                 
-                Instant targetDate = ld.atStartOfDay(ZoneId.systemDefault()).toInstant();
+                LocalDate fromLocal = LocalDate.parse(fromDateParam);
+                LocalDate toLocal = LocalDate.parse(toDateParam);
                 
-                log.info(trackId + " >>> MANUAL TRIGGER STARTED via Dashboard for date: " + targetDate);
-                
-                ExportService es = new ExportService();
-                es.executeExport(trackId, targetDate);
-                
-                message = "Export Completed Successfully! Date: " + dateParam;
-                messageType = "success";
-                log.info(trackId + " <<< MANUAL TRIGGER COMPLETED");
+                // Validation: toDate must be >= fromDate
+                if (toLocal.isBefore(fromLocal)) {
+                    message = "End date cannot be before start date!";
+                    messageType = "error";
+                } else {
+                    Instant fromInstant = fromLocal.atStartOfDay(ZoneId.systemDefault()).toInstant();
+                    Instant toInstant = toLocal.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant(); // Include end date
+                    
+                    log.info(trackId + " >>> MANUAL TRIGGER STARTED via Dashboard for range: {} to {}", fromInstant, toInstant);
+                    
+                    ExportService es = new ExportService();
+                    es.executeExport(trackId, fromInstant, toInstant);
+                    
+                    message = "Export Completed Successfully! Range: " + fromDateParam + " to " + toDateParam;
+                    messageType = "success";
+                    log.info(trackId + " <<< MANUAL TRIGGER COMPLETED");
+                }
             } else {
-                message = "Please select a date.";
+                message = "Please select both start and end dates.";
                 messageType = "error";
             }
         } catch (Exception e) {
@@ -52,13 +63,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentiment Teleporter - Admin Panel</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .dashboard { background: white; width: 100%; max-width: 500px; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .dashboard { background: white; width: 100%; max-width: 550px; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         h1 { color: #2c3e50; margin-bottom: 5px; font-size: 24px; }
         .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 30px; }
         
         .control-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-weight: 600; color: #34495e; margin-bottom: 8px; }
+        .date-range-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .date-input-wrapper { text-align: left; }
+        label { display: block; font-weight: 600; color: #34495e; margin-bottom: 8px; font-size: 14px; }
         input[type="date"] { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.3s; box-sizing: border-box; }
         input[type="date"]:focus { border-color: #3498db; }
         
@@ -76,13 +89,26 @@
         /* Loading Spinner */
         .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-left: 10px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .helper-text { color: #7f8c8d; font-size: 12px; margin-top: 5px; font-style: italic; }
     </style>
     
     <script>
         function startExport(btn) {
-            const dateInput = document.getElementById("targetDate");
-            if (!dateInput.value) {
-                alert("Please select a date.");
+            const fromInput = document.getElementById("fromDate");
+            const toInput = document.getElementById("toDate");
+            
+            if (!fromInput.value || !toInput.value) {
+                alert("Please select both start and end dates.");
+                return false;
+            }
+            
+            // Validate date range
+            const fromDate = new Date(fromInput.value);
+            const toDate = new Date(toInput.value);
+            
+            if (toDate < fromDate) {
+                alert("End date cannot be before start date!");
                 return false;
             }
             
@@ -99,10 +125,19 @@
     <div class="subtitle">Manual Data Export Panel</div>
 
     <form method="POST" onsubmit="return startExport(document.getElementById('runBtn'))">
-        <div class="control-group">
-            <label for="targetDate">Target Date (Day of the data):</label>
-            <input type="date" id="targetDate" name="targetDate" required 
-                   value="<%= LocalDate.now().minusDays(1).toString() %>">
+        <div class="date-range-group">
+            <div class="date-input-wrapper">
+                <label for="fromDate">Start Date:</label>
+                <input type="date" id="fromDate" name="fromDate" required 
+                       value="<%= LocalDate.now().minusDays(7).toString() %>">
+                <div class="helper-text">From (inclusive)</div>
+            </div>
+            <div class="date-input-wrapper">
+                <label for="toDate">End Date:</label>
+                <input type="date" id="toDate" name="toDate" required 
+                       value="<%= LocalDate.now().minusDays(1).toString() %>">
+                <div class="helper-text">To (inclusive)</div>
+            </div>
         </div>
 
         <button type="submit" id="runBtn">START EXPORT</button>

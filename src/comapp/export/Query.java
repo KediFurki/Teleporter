@@ -61,9 +61,8 @@ public final class Query {
             ps.setString(1, from.toString());
             ps.setString(2, to.toString()); 
             for (int i = 0; i < queueIds.size(); i++)
-                ps.setString(i + 3, queueIds.get(i));
-            
-            LOG.info("Executing SQL (No LIMIT - Full Fetch): {}", ps);
+                ps.setString(i + 3, queueIds.get(i));            
+            LOG.info("Executing SQL: {}", ps);
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -108,6 +107,7 @@ public final class Query {
             ArrayList<String> al = gn.getQueuesId();
             for (int i = 0; i < al.size(); i++)
                 ps.setString(i + 3, al.get(i)); 
+            LOG.info("Executing COUNT SQL [Group={}]: {}", gn.groupName, ps);
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -120,12 +120,12 @@ public final class Query {
     
     public static Map<String, String> getAttributes(Connection connection, String conversationId) throws SQLException {
         String sql = "SELECT key, value FROM public.attributes WHERE participantid IN (SELECT participantid FROM participants WHERE conversationid = ?)";
-        Map<String, String> result = new HashMap<>();
-        
+        Map<String, String> result = new HashMap<>();      
         LOG.debug("Fetching attributes for conversationId={}", conversationId);
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, conversationId);
+            LOG.debug("Executing ATTRIBUTE SQL: {}", ps);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
                     result.put(rs.getString("key"), rs.getString("value"));
@@ -147,7 +147,7 @@ public final class Query {
     public static void getGroupQueueMappings(Map<String, Group> groups) throws NamingException {
         Context ctx = new InitialContext();
         DataSource ds = (DataSource) ctx.lookup("java:comp/env/jdbc/" + ConfigServlet.web_app);
-        
+        LOG.info("Executing MAPPING SQL: {}", SQL_GET_QUEUE_MAPPINGS);
         try (Connection conn = ds.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(SQL_GET_QUEUE_MAPPINGS)) {
