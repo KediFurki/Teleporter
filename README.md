@@ -34,7 +34,7 @@ A robust Java-based enterprise application that exports call recordings (MP3) an
 ?  ExportService (Core Logic)                                  ?
 ?    ?? Fetch Group/Queue Mappings from PostgreSQL           ?
 ?    ?? Count Eligible Calls per Group (Date Range Filter)   ?
-?    ?? Calculate Quotas (Global Cap × Group Percentage)     ?
+?    ?? Calculate Quotas (Global Cap Ã— Group Percentage)     ?
 ?    ?? Select Random Calls (ORDER BY RANDOM())              ?
 ?    ?? Generate JSON Metadata (SidecarJsonBuilder)          ?
 ?    ?? Download MP3 from Genesys Cloud (if available)       ?
@@ -74,14 +74,14 @@ WHERE p.connectedtime >= ? AND p.endtime <= ?
 ```
 TotalCalls = 1000 (from all groups)
 GlobalCap = 10% (PERCENT_GLOBAL_CAP property)
-MaxExports = 1000 × 0.10 = 100
+MaxExports = 1000 Ã— 0.10 = 100
 ```
 
 ### Step 3: Distribute by Group Percentage
 ```
-Group A: 500 calls × 50% = 250 target
-Group B: 300 calls × 30% = 90 target
-Group C: 200 calls × 20% = 40 target
+Group A: 500 calls Ã— 50% = 250 target
+Group B: 300 calls Ã— 30% = 90 target
+Group C: 200 calls Ã— 20% = 40 target
 -------------------------------------------
 Sum = 380 (exceeds global cap!)
 ```
@@ -96,9 +96,9 @@ for (Group gn : groups.values()) {
 
 **Result**:
 ```
-Group A: (250 × 100) / 380 = 65.78 ? 65 exports
-Group B: (90 × 100) / 380 = 23.68 ? 23 exports
-Group C: (40 × 100) / 380 = 10.52 ? 10 exports
+Group A: (250 Ã— 100) / 380 = 65.78 ? 65 exports
+Group B: (90 Ã— 100) / 380 = 23.68 ? 23 exports
+Group C: (40 Ã— 100) / 380 = 10.52 ? 10 exports
 -------------------------------------------
 Total = 98 exports (safely under 100 cap)
 ```
@@ -654,15 +654,6 @@ Teleporter/
 ## ? License
 
 Proprietary - Internal Use Only
-
----
-
-## ? Support
-
-For issues, questions, or feature requests:
-- **Email**: support@yourcompany.com
-- **Internal Wiki**: https://wiki.yourcompany.com/teleporter
-- **Issue Tracker**: https://jira.yourcompany.com/projects/TELEPORTER
 
 ---
 
