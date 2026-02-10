@@ -27,13 +27,12 @@
                 LocalDate fromLocal = LocalDate.parse(fromDateParam);
                 LocalDate toLocal = LocalDate.parse(toDateParam);
                 
-                // Validation: toDate must be >= fromDate
                 if (toLocal.isBefore(fromLocal)) {
                     message = "End date cannot be before start date!";
                     messageType = "error";
                 } else {
                     Instant fromInstant = fromLocal.atStartOfDay(ZoneId.systemDefault()).toInstant();
-                    Instant toInstant = toLocal.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant(); // Include end date
+                    Instant toInstant = toLocal.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
                     
                     log.info(trackId + " >>> MANUAL TRIGGER STARTED via Dashboard for range: {} to {}", fromInstant, toInstant);
                     

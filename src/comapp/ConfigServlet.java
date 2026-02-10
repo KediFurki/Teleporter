@@ -125,7 +125,7 @@ public class ConfigServlet extends HttpServlet {
         try {
             scheduler = Executors.newSingleThreadScheduledExecutor();           
             ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());        
-            ZonedDateTime nextRun = now.withHour(3).withMinute(30).withSecond(0);
+            ZonedDateTime nextRun = now.withHour(1).withMinute(30).withSecond(0);
             
             if (now.compareTo(nextRun) > 0) {
                 nextRun = nextRun.plusDays(1);
