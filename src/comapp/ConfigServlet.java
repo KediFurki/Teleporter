@@ -123,8 +123,8 @@ public class ConfigServlet extends HttpServlet {
 
     private void startNightlyScheduler() {
         try {
-            scheduler = Executors.newSingleThreadScheduledExecutor();           
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());        
+            scheduler = Executors.newSingleThreadScheduledExecutor();
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
             ZonedDateTime nextRun = now.withHour(1).withMinute(30).withSecond(0);
             
             if (now.compareTo(nextRun) > 0) {

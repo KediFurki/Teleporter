@@ -61,12 +61,11 @@ public final class Query {
             ps.setString(1, from.toString());
             ps.setString(2, to.toString()); 
             for (int i = 0; i < queueIds.size(); i++)
-                ps.setString(i + 3, queueIds.get(i));            
+                ps.setString(i + 3, queueIds.get(i));
             LOG.info("Executing SQL: {}", ps);
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    
                     Map<String, String> raw = new HashMap<>();
                     ResultSetMetaData md = rs.getMetaData();
                     for (int i = 1; i <= md.getColumnCount(); i++)
@@ -120,7 +119,7 @@ public final class Query {
     
     public static Map<String, String> getAttributes(Connection connection, String conversationId) throws SQLException {
         String sql = "SELECT key, value FROM public.attributes WHERE participantid IN (SELECT participantid FROM participants WHERE conversationid = ?)";
-        Map<String, String> result = new HashMap<>();      
+        Map<String, String> result = new HashMap<>();
         LOG.debug("Fetching attributes for conversationId={}", conversationId);
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -47,8 +47,8 @@ public final class SidecarJsonBuilder {
         String marketCat = getFirstNonEmpty(attributes, "marketing_category", "EOSMarketingCategory");
         json.put("MarketingCategory", marketCat);
 
-        json.put("ProductCode", getFirstNonEmpty(attributes, "sproductCode", "productReference"));
-        json.put("Technology", attributes.getOrDefault("Technology", ""));
+        json.put("ProductCode", getFirstNonEmpty(attributes, "bestOCBProduct", "BestOCBProduct", "sproductCode", "productReference"));
+        json.put("Technology", getFirstNonEmpty(attributes, "Technology", "technology"));
         json.put("IsMulti", attributes.getOrDefault("IsMulti", ""));
         json.put("ConsensoProfilazione", attributes.getOrDefault("ConsensoProfilazione", ""));
         json.put("LeadCallResult", attributes.getOrDefault("LeadCallResult", ""));

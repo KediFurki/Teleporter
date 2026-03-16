@@ -136,7 +136,7 @@ public final class SftpClient {
     public Vector<ChannelSftp.LsEntry> listFiles() throws SftpException, JSchException {
         return listFiles(null);
     }
-
+    
     public Vector<ChannelSftp.LsEntry> listFiles(String remoteDir) throws SftpException, JSchException {
         if (channel == null) {
             throw new IllegalArgumentException("Connection is not available");
@@ -178,7 +178,7 @@ public final class SftpClient {
             channel.put(is, remotePath);
         }
     }
-
+    
     public void uploadFile(InputStream localPath, String remote) throws JSchException, SftpException {
         remote = remote_path + remote;
         log.info("localPath: stream, remotePath: " + remote);
@@ -187,7 +187,7 @@ public final class SftpClient {
         }
         channel.put(localPath, remote);
     }
-
+    
     public void downloadFile(String remotePath, String localPath) throws SftpException {
         remotePath = remote_path + remotePath;
         log.info("remotePath: " + remotePath + ", localPath: " + localPath);
